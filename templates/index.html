@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>URL Shortener</h1>
+            <p>Make your links shorter, faster</p>
+        </header>
+
+        <main>
+            <div class="url-form">
+                <div class="input-group">
+                    <input type="url" 
+                           id="urlInput" 
+                           placeholder="Paste your URL here..."
+                           class="url-input">
+                    <div class="error-message" id="errorMessage"></div>
+                </div>
+                <a href="#" id="generateBtn" class="generate-btn">Shorten URL</a>
+            </div>
+
+            <div class="url-history">
+                <h2>Recent URLs</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Original URL</th>
+                                <th>Shortened URL</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td class="url-cell">https://example.com/very/long/url/that/needs/shortening</td>
+                                <td class="url-cell">https://short.url/abc123</td>
+                                <td class="action-cell">
+                                    <button class="action-btn copy-btn" title="Copy">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                    <button class="action-btn visit-btn" title="Visit">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="credits">
+                    <p>Built with ❤️ by <a href="https://github.com/himadrishekhar" target="_blank">Himadri Shekhar</a></p>
+                </div>
+                <a href="https://www.buymeacoffee.com/himadrishekhar" target="_blank" class="coffee-btn">
+                    <i class="fas fa-coffee"></i> Buy me a coffee
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> 
