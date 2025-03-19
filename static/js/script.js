@@ -7,8 +7,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to validate URL
     function isValidURL(url) {
         try {
-            new URL(url);
-            return true;
+            const urlObj = new URL(url);
+            // Check if URL has a valid domain with at least one dot and valid TLD
+            const domainParts = urlObj.hostname.split('.');
+            if (domainParts.length < 2) return false;
+            
+            // List of common TLDs
+            const validTLDs = ['com', 'org', 'net', 'edu', 'gov', 'mil', 'in', 'co', 'io', 'app', 'dev'];
+            const tld = domainParts[domainParts.length - 1].toLowerCase();
+            
+            return validTLDs.includes(tld);
         } catch (e) {
             return false;
         }
@@ -35,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Validate URL
         if (!isValidURL(urlToCheck)) {
-            errorMessage.textContent = 'Please enter a valid URL (e.g., https://example.com)';
+            errorMessage.textContent = 'Please enter a valid URL with a proper domain (e.g., https://example.com)';
             return;
         }
 
@@ -71,6 +79,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const tbody = document.querySelector('tbody');
             tbody.innerHTML = '';
             
+            if (data.message) {
+                // Show empty state message
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="4" class="empty-message">${data.message}</td>
+                `;
+                tbody.appendChild(row);
+                return;
+            }
+            
             data.forEach((item, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -84,6 +102,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <a href="${window.location.origin}/${item.short_code}" class="action-btn visit-btn" title="Visit" target="_blank">
                             <i class="fas fa-external-link-alt"></i>
                         </a>
+                        <button class="action-btn delete-btn" title="Delete" onclick="deleteURL('${item.short_code}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -93,6 +114,33 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading URL history:', error);
         });
     }
+
+    // Function to delete URL
+    window.deleteURL = function(shortCode) {
+        if (confirm('Are you sure you want to delete this URL?')) {
+            fetch(`/delete/${shortCode}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Server returned non-JSON response');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    loadURLHistory();
+                } else {
+                    alert(data.error || 'Failed to delete URL');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting URL:', error);
+                alert('Failed to delete URL. Please try again.');
+            });
+        }
+    };
 
     // Function to copy to clipboard
     window.copyToClipboard = function(text) {
