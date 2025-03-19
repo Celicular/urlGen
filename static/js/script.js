@@ -14,11 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Function to strip URL protocol if exists
-    function stripURLProtocol(url) {
-        return url.replace(/^(https?:\/\/)?(www\.)?/, '');
-    }
-
     // Function to handle URL generation
     function handleURLGeneration() {
         const inputValue = urlInput.value.trim();
@@ -40,16 +35,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Validate URL
         if (!isValidURL(urlToCheck)) {
-            errorMessage.textContent = 'Please enter a valid URL';
+            errorMessage.textContent = 'Please enter a valid URL (e.g., https://example.com)';
             return;
         }
 
-        // Strip protocol and www if exists
-        const strippedURL = stripURLProtocol(urlToCheck);
-        
-        // Alert the stripped URL (this will be replaced with actual API call later)
-        alert('Processed URL: ' + strippedURL);
+        // Send URL to backend
+        fetch('/shorten', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: urlToCheck })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                errorMessage.textContent = data.error;
+                return;
+            }
+            // Clear input
+            urlInput.value = '';
+            // Refresh the table
+            loadURLHistory();
+        })
+        .catch(error => {
+            errorMessage.textContent = 'An error occurred. Please try again.';
+        });
     }
+
+    // Function to load URL history
+    function loadURLHistory() {
+        fetch('/urls')
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td class="url-cell">${item.original_url}</td>
+                    <td class="url-cell">${window.location.origin}/${item.short_code}</td>
+                    <td class="action-cell">
+                        <button class="action-btn copy-btn" title="Copy" onclick="copyToClipboard('${window.location.origin}/${item.short_code}')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                        <a href="${window.location.origin}/${item.short_code}" class="action-btn visit-btn" title="Visit" target="_blank">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading URL history:', error);
+        });
+    }
+
+    // Function to copy to clipboard
+    window.copyToClipboard = function(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('URL copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+        });
+    };
 
     // Add click event listener to the generate button
     generateBtn.addEventListener('click', function(e) {
@@ -69,4 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
     urlInput.addEventListener('input', function() {
         errorMessage.textContent = '';
     });
+
+    // Load URL history when page loads
+    loadURLHistory();
 }); 
